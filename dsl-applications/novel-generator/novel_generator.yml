@@ -1,0 +1,1026 @@
+app:
+  description: '专业的长篇小说生成应用，支持世界观设定、大纲规划、角色创建、章节生成、自动审查与润色。多节点工作流，每个阶段独立可调试。'
+  icon: 📚
+  icon_background: '#FFF3E0'
+  mode: advanced-chat
+  name: 长篇小说生成器V2
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.4.0
+workflow:
+  conversation_variables:
+  - description: 当前生成阶段
+    id: ab77671b-7e2c-40ce-82cd-5ddedf0bd308
+    name: stage
+    value: init
+    value_type: string
+  - description: 小说主题和背景描述
+    id: ef361743-6c7c-4ff3-b849-06186cb4075d
+    name: theme
+    value: ''
+    value_type: string
+  - description: 世界观设定内容
+    id: 7e292323-49ad-43cd-a5fb-c20cdb4aab34
+    name: worldview
+    value: ''
+    value_type: string
+  - description: 小说完整大纲
+    id: 1e4c5659-fc9d-4fed-a06b-36a854d5f816
+    name: outline
+    value: ''
+    value_type: string
+  - description: 角色设定内容
+    id: 70bf92d4-e395-42d7-8074-edca455b95cd
+    name: characters
+    value: ''
+    value_type: string
+  - description: 当前章节编号
+    id: a29ce65f-e4a8-4dcb-bb99-96c688df6264
+    name: current_chapter
+    value: 1
+    value_type: number
+  - description: 已生成章节摘要
+    id: 0cff2d54-bd9a-46be-b826-a7a94e279747
+    name: chapters_summary
+    value: ''
+    value_type: string
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+    opening_statement: "👋 欢迎使用长篇小说生成器V2！\n\n完整的创作流程：\n1. 📖 世界观设定\n2. 📋 大纲规划\n3. 👥 角色设定\n4. ✍️ 章节创作（前情提要 → 初稿 → 审查润色）\n\n请告诉我您想创作的小说类型和主题："
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 我想写一部修仙小说，主角从凡人逆袭成仙
+    - 科幻小说，关于人工智能觉醒的故事
+    - 悬疑推理小说，发生在封闭庄园的谋杀案
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - id: start-to-if
+      source: start_node
+      sourceHandle: source
+      target: if_stage
+      targetHandle: target
+      type: custom
+    - id: if-to-worldview
+      source: if_stage
+      sourceHandle: case-init
+      target: worldview_llm
+      targetHandle: target
+      type: custom
+    - id: if-to-outline
+      source: if_stage
+      sourceHandle: case-outline
+      target: outline_llm
+      targetHandle: target
+      type: custom
+    - id: if-to-characters
+      source: if_stage
+      sourceHandle: case-characters
+      target: characters_llm
+      targetHandle: target
+      type: custom
+    - id: if-to-summary
+      source: if_stage
+      sourceHandle: case-ready
+      target: summary_llm
+      targetHandle: target
+      type: custom
+    - id: worldview-to-code1
+      source: worldview_llm
+      sourceHandle: source
+      target: code_worldview
+      targetHandle: target
+      type: custom
+    - id: code1-to-assigner-wv
+      source: code_worldview
+      sourceHandle: source
+      target: assigner_worldview
+      targetHandle: target
+      type: custom
+    - id: assigner-wv-to-stage1
+      source: assigner_worldview
+      sourceHandle: source
+      target: assigner_stage1
+      targetHandle: target
+      type: custom
+    - id: stage1-to-answer
+      source: assigner_stage1
+      sourceHandle: source
+      target: answer_worldview
+      targetHandle: target
+      type: custom
+    - id: outline-to-code2
+      source: outline_llm
+      sourceHandle: source
+      target: code_outline
+      targetHandle: target
+      type: custom
+    - id: code2-to-assigner-ol
+      source: code_outline
+      sourceHandle: source
+      target: assigner_outline
+      targetHandle: target
+      type: custom
+    - id: assigner-ol-to-stage2
+      source: assigner_outline
+      sourceHandle: source
+      target: assigner_stage2
+      targetHandle: target
+      type: custom
+    - id: stage2-to-answer
+      source: assigner_stage2
+      sourceHandle: source
+      target: answer_outline
+      targetHandle: target
+      type: custom
+    - id: characters-to-code3
+      source: characters_llm
+      sourceHandle: source
+      target: code_characters
+      targetHandle: target
+      type: custom
+    - id: code3-to-assigner-ch
+      source: code_characters
+      sourceHandle: source
+      target: assigner_characters
+      targetHandle: target
+      type: custom
+    - id: assigner-ch-to-stage3
+      source: assigner_characters
+      sourceHandle: source
+      target: assigner_stage3
+      targetHandle: target
+      type: custom
+    - id: stage3-to-answer
+      source: assigner_stage3
+      sourceHandle: source
+      target: answer_characters
+      targetHandle: target
+      type: custom
+    - id: summary-to-answer
+      source: summary_llm
+      sourceHandle: source
+      target: answer_summary
+      targetHandle: target
+      type: custom
+    - id: summary-to-draft
+      source: summary_llm
+      sourceHandle: source
+      target: draft_llm
+      targetHandle: target
+      type: custom
+    - id: draft-to-answer
+      source: draft_llm
+      sourceHandle: source
+      target: answer_draft
+      targetHandle: target
+      type: custom
+    - id: draft-to-polish
+      source: draft_llm
+      sourceHandle: source
+      target: polish_llm
+      targetHandle: target
+      type: custom
+    - id: polish-to-answer
+      source: polish_llm
+      sourceHandle: source
+      target: answer_final
+      targetHandle: target
+      type: custom
+    - id: answer-to-code-summary
+      source: answer_final
+      sourceHandle: source
+      target: code_summary
+      targetHandle: target
+      type: custom
+    - id: code-summary-to-assigner-summary
+      source: code_summary
+      sourceHandle: source
+      target: assigner_summary
+      targetHandle: target
+      type: custom
+    - id: assigner-summary-to-code-chapter
+      source: assigner_summary
+      sourceHandle: source
+      target: code_chapter
+      targetHandle: target
+      type: custom
+    - id: code-chapter-to-assigner-chapter
+      source: code_chapter
+      sourceHandle: source
+      target: assigner_chapter
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: 用户输入起点
+        selected: false
+        title: 开始
+        type: start
+        variables: []
+      height: 90
+      id: start_node
+      position:
+        x: 80
+        y: 400
+      positionAbsolute:
+        x: 80
+        y: 400
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        cases:
+        - case_id: case-init
+          conditions:
+          - comparison_operator: is
+            id: cond-init
+            value: init
+            variable_selector:
+            - conversation
+            - stage
+          logical_operator: and
+        - case_id: case-outline
+          conditions:
+          - comparison_operator: is
+            id: cond-outline
+            value: outline
+            variable_selector:
+            - conversation
+            - stage
+          logical_operator: and
+        - case_id: case-characters
+          conditions:
+          - comparison_operator: is
+            id: cond-characters
+            value: characters
+            variable_selector:
+            - conversation
+            - stage
+          logical_operator: and
+        - case_id: case-ready
+          conditions:
+          - comparison_operator: is
+            id: cond-ready
+            value: ready
+            variable_selector:
+            - conversation
+            - stage
+          logical_operator: and
+        desc: 根据stage判断当前阶段
+        selected: false
+        title: 阶段判断
+        type: if-else
+      height: 126
+      id: if_stage
+      position:
+        x: 380
+        y: 370
+      positionAbsolute:
+        x: 380
+        y: 370
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+        desc: 生成世界观设定
+        model:
+          completion_params:
+            temperature: 0.8
+          mode: chat
+          name: deepseek-chat
+          provider: deepseek
+        prompt_template:
+        - role: system
+          text: "你是一位专业的世界观架构师。\n\n用户输入的主题：{{#sys.query#}}\n\n请创建详细的世界观设定，包括：\n\n1. **时代背景**：故事发生的时间、历史背景、时代特征\n2. **地理环境**：主要地点、区域特征、地理分布\n3. **社会结构**：政治体制、社会阶层、势力分布\n4. **特殊设定**（根据类型）：\n   - 奇幻：魔法体系、种族设定、神话传说\n   - 科幻：科技水平、未来设定、星际文明\n   - 武侠：武学体系、江湖门派、武林规矩\n   - 现代：行业背景、社会环境、现实设定\n5. **核心规则**：世界运行的基本法则和限制\n\n要求：逻辑自洽、富有创意、为情节发展留空间"
+        selected: false
+        title: 世界观生成
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: worldview_llm
+      position:
+        x: 680
+        y: 100
+      positionAbsolute:
+        x: 680
+        y: 100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+        desc: 生成故事大纲
+        model:
+          completion_params:
+            temperature: 0.8
+          mode: chat
+          name: deepseek-chat
+          provider: deepseek
+        prompt_template:
+        - role: system
+          text: "你是一位专业的故事大纲规划师。\n\n**世界观**：\n{{#conversation.worldview#}}\n\n**用户指令**：{{#sys.query#}}\n\n现在请基于上述世界观创建完整的故事大纲。如果用户只是输入\"继续\"、\"下一步\"等简单指令，请直接按照标准流程生成；如果用户提供了具体要求（如故事类型、主角设定等），请结合这些要求生成。\n\n请创建大纲，包括：\n\n1. **故事主线**：核心冲突、主要情节走向、主题思想\n2. **章节规划**（30-50章）：\n   - 每章包括：标题、主要情节、角色发展、关键冲突\n3. **情节节奏**：\n   - 起：开篇引入（1-5章）\n   - 承：情节展开（6-20章）\n   - 转：高潮冲突（21-40章）\n   - 合：结局收尾（41-50章）\n4. **伏笔设计**：关键伏笔的埋设和回收位置\n5. **高潮设置**：主要冲突点和转折点\n\n要求：情节跌宕起伏、张力递进、每章有看点"
+        selected: false
+        title: 大纲生成
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: outline_llm
+      position:
+        x: 680
+        y: 240
+      positionAbsolute:
+        x: 680
+        y: 240
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+        desc: 生成角色设定
+        model:
+          completion_params:
+            temperature: 0.8
+          mode: chat
+          name: deepseek-chat
+          provider: deepseek
+        prompt_template:
+        - role: system
+          text: "你是一位专业的角色设计师。\n\n**世界观**：\n{{#conversation.worldview#}}\n\n**故事大纲**：\n{{#conversation.outline#}}\n\n**用户指令**：{{#sys.query#}}\n\n现在请基于世界观和故事大纲创建角色设定。如果用户只是输入\"继续\"、\"下一步\"等简单指令，请直接按照标准流程生成；如果用户提供了具体要求（如主角性格、特殊能力等），请结合这些要求生成。\n\n请创建详细的角色设定：\n\n**主角**：\n- 姓名、年龄、外貌特征\n- 性格特点（优点、缺点、独特气质）\n- 背景故事和成长经历\n- 核心动机和目标\n- 能力特长\n- 角色成长轨迹\n\n**重要配角**（3-5位）：\n- 基本信息\n- 性格特点\n- 与主角关系\n- 在故事中的作用\n\n**反派角色**：\n- 基本信息\n- 动机和目标（合理化，避免脸谱化）\n- 与主角的冲突点\n\n**人物关系网**：角色之间的关系、情感线索、利益冲突\n\n要求：角色鲜明、有缺陷和成长空间、反派动机合理"
+        selected: false
+        title: 角色生成
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: characters_llm
+      position:
+        x: 680
+        y: 380
+      positionAbsolute:
+        x: 680
+        y: 380
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+        desc: 生成前情提要
+        model:
+          completion_params:
+            temperature: 0.5
+          mode: chat
+          name: deepseek-chat
+          provider: deepseek
+        prompt_template:
+        - role: system
+          text: "你是一位专业的故事梳理师。\n\n**故事大纲**：\n{{#conversation.outline#}}\n\n**角色设定**：\n{{#conversation.characters#}}\n\n**当前章节**：第 {{#conversation.current_chapter#}} 章\n\n**已生成章节摘要**：\n{{#conversation.chapters_summary#}}\n\n**用户指令**：{{#sys.query#}}\n\n请生成简洁的前情提要（如果是第1章可省略）：\n\n1. **关键情节回顾**：已发生的重要事件（按时间顺序）\n2. **角色发展**：主要角色的状态和变化\n3. **当前局势**：故事进展到的阶段和冲突状态\n4. **待解问题**：悬而未决的伏笔和疑问\n5. **本章要点**：根据大纲，本章应该推进的情节\n\n要求：简洁明了，突出重点，确保前后一致"
+        selected: false
+        title: 前情提要
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: summary_llm
+      position:
+        x: 680
+        y: 520
+      positionAbsolute:
+        x: 680
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+        desc: 生成章节初稿
+        model:
+          completion_params:
+            temperature: 0.9
+          mode: chat
+          name: deepseek-chat
+          provider: deepseek
+        prompt_template:
+        - role: system
+          text: "你是一位才华横溢的小说作家。\n\n**创作素材**：\n- 世界观：{{#conversation.worldview#}}\n- 故事大纲：{{#conversation.outline#}}\n- 角色设定：{{#conversation.characters#}}\n- 前情提要：{{#summary_llm.text#}}\n- 当前章节：第 {{#conversation.current_chapter#}} 章\n\n**创作要求**：\n\n字数：3000-5000字\n\n内容要素：\n- 严格遵循大纲规划的本章内容\n- 展现角色性格和成长\n- 推进主线情节\n- 设置悬念或冲突\n- 适当埋设或回收伏笔\n\n写作技巧：\n- 语言生动，富有画面感\n- 对话自然，符合角色性格\n- 场景描写细腻，调动多种感官\n- 心理描写深入\n- 节奏把控得当\n\n注意事项：\n- 与前文保持一致\n- 遵循世界观设定规则\n- 角色行为符合性格设定\n- 情节发展合乎逻辑\n\n请开始创作本章内容。"
+        selected: false
+        title: 章节初稿
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: draft_llm
+      position:
+        x: 980
+        y: 520
+      positionAbsolute:
+        x: 980
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+        desc: 审查并润色章节
+        model:
+          completion_params:
+            temperature: 0.6
+          mode: chat
+          name: deepseek-chat
+          provider: deepseek
+        prompt_template:
+        - role: system
+          text: "你是一位专业的小说编辑和文学润色师。\n\n**参考信息**：\n- 世界观：{{#conversation.worldview#}}\n- 大纲：{{#conversation.outline#}}\n- 角色：{{#conversation.characters#}}\n- 前情：{{#summary_llm.text#}}\n- 章节初稿：{{#draft_llm.text#}}\n\n**任务**：对初稿进行审查和润色\n\n## 审查检查\n\n**逻辑检查**：\n- 情节是否合理？是否与前文矛盾？\n- 是否遵循世界观规则？时间线是否清晰？\n\n**角色检查**：\n- 行为是否符合设定？对话是否符合性格？\n- 情感变化是否自然？\n\n**情节检查**：\n- 是否完成本章大纲目标？\n- 冲突设置是否合理？节奏是否得当？\n\n## 润色优化\n\n**语言优化**：提升文笔美感、消除重复和生硬\n\n**描写增强**：\n- 丰富环境描写（视觉、听觉、触觉、嗅觉）\n- 深化心理描写\n- 强化动作描写的画面感\n\n**情感渲染**：增强情感张力、细化情绪变化、营造氛围感\n\n**节奏调整**：紧张场景加快节奏、抒情段落放慢节奏\n\n**输出要求**：\n- 直接输出修改后的完整章节内容（3000-5000字）\n- 不要输出修改说明\n- 保持核心情节不变\n- 大幅提升文学性和可读性\n\n请开始审查和润色。"
+        selected: false
+        title: 审查润色
+        type: llm
+        vision:
+          enabled: false
+      height: 98
+      id: polish_llm
+      position:
+        x: 1280
+        y: 520
+      positionAbsolute:
+        x: 1280
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: |
+          def main(worldview_text: str) -> dict:
+              return {
+                  "worldview": worldview_text,
+                  "next_stage": "outline"
+              }
+        code_language: python3
+        desc: 保存世界观并更新stage
+        outputs:
+          worldview:
+            type: string
+          next_stage:
+            type: string
+        selected: false
+        title: 处理世界观
+        type: code
+        variables:
+        - value_selector:
+          - worldview_llm
+          - text
+          variable: worldview_text
+      height: 54
+      id: code_worldview
+      position:
+        x: 980
+        y: 100
+      positionAbsolute:
+        x: 980
+        y: 100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 保存世界观内容
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_worldview
+          - worldview
+          variable_selector:
+          - conversation
+          - worldview
+          write_mode: over-write
+        selected: false
+        title: 保存世界观
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_worldview
+      position:
+        x: 1280
+        y: 100
+      positionAbsolute:
+        x: 1280
+        y: 100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 更新阶段为outline
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_worldview
+          - next_stage
+          variable_selector:
+          - conversation
+          - stage
+          write_mode: over-write
+        selected: false
+        title: 更新阶段1
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_stage1
+      position:
+        x: 1580
+        y: 100
+      positionAbsolute:
+        x: 1580
+        y: 100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: |
+          def main(outline_text: str) -> dict:
+              return {
+                  "outline": outline_text,
+                  "next_stage": "characters"
+              }
+        code_language: python3
+        desc: 处理大纲
+        outputs:
+          outline:
+            type: string
+          next_stage:
+            type: string
+        selected: false
+        title: 处理大纲
+        type: code
+        variables:
+        - value_selector:
+          - outline_llm
+          - text
+          variable: outline_text
+      height: 54
+      id: code_outline
+      position:
+        x: 980
+        y: 240
+      positionAbsolute:
+        x: 980
+        y: 240
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 保存大纲内容
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_outline
+          - outline
+          variable_selector:
+          - conversation
+          - outline
+          write_mode: over-write
+        selected: false
+        title: 保存大纲
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_outline
+      position:
+        x: 1280
+        y: 240
+      positionAbsolute:
+        x: 1280
+        y: 240
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 更新阶段为characters
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_outline
+          - next_stage
+          variable_selector:
+          - conversation
+          - stage
+          write_mode: over-write
+        selected: false
+        title: 更新阶段2
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_stage2
+      position:
+        x: 1580
+        y: 240
+      positionAbsolute:
+        x: 1580
+        y: 240
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: |
+          def main(characters_text: str) -> dict:
+              return {
+                  "characters": characters_text,
+                  "next_stage": "ready"
+              }
+        code_language: python3
+        desc: 处理角色
+        outputs:
+          characters:
+            type: string
+          next_stage:
+            type: string
+        selected: false
+        title: 处理角色
+        type: code
+        variables:
+        - value_selector:
+          - characters_llm
+          - text
+          variable: characters_text
+      height: 54
+      id: code_characters
+      position:
+        x: 980
+        y: 380
+      positionAbsolute:
+        x: 980
+        y: 380
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 保存角色内容
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_characters
+          - characters
+          variable_selector:
+          - conversation
+          - characters
+          write_mode: over-write
+        selected: false
+        title: 保存角色
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_characters
+      position:
+        x: 1280
+        y: 380
+      positionAbsolute:
+        x: 1280
+        y: 380
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 更新阶段为ready
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_characters
+          - next_stage
+          variable_selector:
+          - conversation
+          - stage
+          write_mode: over-write
+        selected: false
+        title: 更新阶段3
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_stage3
+      position:
+        x: 1580
+        y: 380
+      positionAbsolute:
+        x: 1580
+        y: 380
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: |
+          def main(draft: str, polish: str, current_chapter: int, old_summary: str) -> dict:
+              # 生成本章摘要（取润色后的前200字作为摘要）
+              chapter_text = polish[:200] + "..." if len(polish) > 200 else polish
+              new_entry = f"\n\n【第{current_chapter}章摘要】\n{chapter_text}"
+              
+              # 拼接到已有摘要
+              updated_summary = old_summary + new_entry if old_summary else new_entry
+              
+              return {
+                  "updated_summary": updated_summary
+              }
+        code_language: python3
+        desc: 生成并拼接章节摘要
+        outputs:
+          updated_summary:
+            type: string
+        selected: false
+        title: 生成摘要
+        type: code
+        variables:
+        - value_selector:
+          - draft_llm
+          - text
+          variable: draft
+        - value_selector:
+          - polish_llm
+          - text
+          variable: polish
+        - value_selector:
+          - conversation
+          - current_chapter
+          variable: current_chapter
+        - value_selector:
+          - conversation
+          - chapters_summary
+          variable: old_summary
+      height: 54
+      id: code_summary
+      position:
+        x: 1880
+        y: 520
+      positionAbsolute:
+        x: 1880
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 保存章节摘要
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_summary
+          - updated_summary
+          variable_selector:
+          - conversation
+          - chapters_summary
+          write_mode: over-write
+        selected: false
+        title: 保存摘要
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_summary
+      position:
+        x: 2180
+        y: 520
+      positionAbsolute:
+        x: 2180
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: |
+          def main(current_chapter: int) -> dict:
+              return {
+                  "next_chapter": current_chapter + 1
+              }
+        code_language: python3
+        desc: 递增章节号
+        outputs:
+          next_chapter:
+            type: number
+        selected: false
+        title: 计算下一章
+        type: code
+        variables:
+        - value_selector:
+          - conversation
+          - current_chapter
+          variable: current_chapter
+      height: 54
+      id: code_chapter
+      position:
+        x: 2480
+        y: 520
+      positionAbsolute:
+        x: 1580
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 更新章节号
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - code_chapter
+          - next_chapter
+          variable_selector:
+          - conversation
+          - current_chapter
+          write_mode: over-write
+        selected: false
+        title: 更新章节
+        type: assigner
+        version: '2'
+      height: 86
+      id: assigner_chapter
+      position:
+        x: 2780
+        y: 520
+      positionAbsolute:
+        x: 2780
+        y: 520
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: "✅ **世界观设定完成！**\n\n{{#worldview_llm.text#}}\n\n---\n\n💡 输入「继续」或「生成大纲」进入下一步。"
+        desc: 世界观阶段输出
+        title: 世界观回复
+        type: answer
+        variables: []
+      height: 107
+      id: answer_worldview
+      position:
+        x: 1880
+        y: 120
+      positionAbsolute:
+        x: 1880
+        y: 120
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: "✅ **大纲规划完成！**\n\n{{#outline_llm.text#}}\n\n---\n\n💡 输入「继续」或「创建角色」进入角色设定。"
+        desc: 大纲阶段输出
+        title: 大纲回复
+        type: answer
+        variables: []
+      height: 107
+      id: answer_outline
+      position:
+        x: 1880
+        y: 280
+      positionAbsolute:
+        x: 1880
+        y: 280
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: "✅ **角色设定完成！**\n\n{{#characters_llm.text#}}\n\n---\n\n💡 输入「生成第1章」或「写第1章」开始章节创作。"
+        desc: 角色阶段输出
+        title: 角色回复
+        type: answer
+        variables: []
+      height: 107
+      id: answer_characters
+      position:
+        x: 1880
+        y: 440
+      positionAbsolute:
+        x: 1880
+        y: 440
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: "📝 **前情提要（第{{#conversation.current_chapter#}}章）**\n\n{{#summary_llm.text#}}\n\n---\n\n⏳ 正在生成初稿..."
+        desc: 前情提要输出
+        title: 前情提要回复
+        type: answer
+        variables: []
+      height: 107
+      id: answer_summary
+      position:
+        x: 1880
+        y: 600
+      positionAbsolute:
+        x: 1880
+        y: 600
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: "✍️ **初稿完成（第{{#conversation.current_chapter#}}章）**\n\n{{#draft_llm.text#}}\n\n---\n\n⏳ 正在审查和润色..."
+        desc: 初稿输出
+        title: 初稿回复
+        type: answer
+        variables: []
+      height: 107
+      id: answer_draft
+      position:
+        x: 1880
+        y: 760
+      positionAbsolute:
+        x: 1880
+        y: 760
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: "✨ **第{{#conversation.current_chapter#}}章完成（审查润色后）**\n\n{{#polish_llm.text#}}\n\n---\n\n💡 输入「继续」或「生成下一章」继续创作。"
+        desc: 最终输出
+        title: 最终回复
+        type: answer
+        variables: []
+      height: 107
+      id: answer_final
+      position:
+        x: 1880
+        y: 920
+      positionAbsolute:
+        x: 1880
+        y: 920
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.5
+
